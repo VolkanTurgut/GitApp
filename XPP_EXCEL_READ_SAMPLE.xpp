@@ -1,0 +1,48 @@
+/// <summary>
+/// Example: Read data from an Excel file in D365FO X++ using OfficeOpenXml.
+/// This sample reads the first worksheet and logs values from two columns.
+/// </summary>
+class XppExcelReadSample
+{
+    public static void main(Args _args)
+    {
+        str                 filePath = @"C:\\Temp\\Sample.xlsx";
+        System.Byte[]       fileBytes;
+        System.IO.Stream    stream;
+        OfficeOpenXml.ExcelPackage package;
+        OfficeOpenXml.ExcelWorksheet sheet;
+        int                 row;
+        int                 totalRows;
+        str                 col1Value;
+        str                 col2Value;
+
+        // Read file bytes from local/storage path.
+        // Change this to your preferred source (e.g., upload temp storage).
+        fileBytes = System.IO.File::ReadAllBytes(filePath);
+
+        stream = new System.IO.MemoryStream(fileBytes);
+        package = new OfficeOpenXml.ExcelPackage(stream);
+
+        // Get first worksheet.
+        sheet = package.get_Workbook().get_Worksheets().get_Item(1);
+
+        if (!sheet)
+        {
+            throw error("No worksheet found in Excel file.");
+        }
+
+        totalRows = sheet.get_Dimension().get_End().get_Row();
+
+        // Start from row 2 to skip header row.
+        for (row = 2; row <= totalRows; row++)
+        {
+            col1Value = any2Str(sheet.get_Cells().get_Item(row, 1).get_Text());
+            col2Value = any2Str(sheet.get_Cells().get_Item(row, 2).get_Text());
+
+            info(strFmt("Row %1 | Col1: %2 | Col2: %3", row, col1Value, col2Value));
+        }
+
+        package.Dispose();
+        stream.Dispose();
+    }
+}
